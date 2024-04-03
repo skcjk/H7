@@ -27,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "usart.h"
 #include "gpio.h"
+#include "cmd.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,7 +47,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-  extern unsigned char rx_buf[100];
+
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -55,6 +56,23 @@ const osThreadAttr_t defaultTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for cmdTask */
+osThreadId_t cmdTaskHandle;
+const osThreadAttr_t cmdTask_attributes = {
+  .name = "cmdTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityHigh,
+};
+/* Definitions for usart3Mutex */
+osMutexId_t usart3MutexHandle;
+const osMutexAttr_t usart3Mutex_attributes = {
+  .name = "usart3Mutex"
+};
+/* Definitions for cmdRxBinarySem */
+osSemaphoreId_t cmdRxBinarySemHandle;
+const osSemaphoreAttr_t cmdRxBinarySem_attributes = {
+  .name = "cmdRxBinarySem"
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -62,6 +80,7 @@ const osThreadAttr_t defaultTask_attributes = {
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
+extern void CmdTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -74,10 +93,17 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
+  /* Create the mutex(es) */
+  /* creation of usart3Mutex */
+  usart3MutexHandle = osMutexNew(&usart3Mutex_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
+
+  /* Create the semaphores(s) */
+  /* creation of cmdRxBinarySem */
+  cmdRxBinarySemHandle = osSemaphoreNew(1, 0, &cmdRxBinarySem_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
@@ -94,6 +120,9 @@ void MX_FREERTOS_Init(void) {
   /* Create the thread(s) */
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
+  /* creation of cmdTask */
+  cmdTaskHandle = osThreadNew(CmdTask, NULL, &cmdTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -115,17 +144,14 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
-	unsigned char s_buf[]="hello world\r\n";
-  HAL_UARTEx_ReceiveToIdle_DMA(&huart1,rx_buf,100);
-  __HAL_DMA_DISABLE_IT(&hdma_usart1_rx,DMA_IT_HT);
-  HAL_UART_Receive_DMA(&huart1,rx_buf,100);
+
+  unsigned char s_buf[]="hello world\r\n";
   /* Infinite loop */
   for(;;)
   {
-//    printf("test");
-    HAL_UART_Transmit_DMA(&huart1, s_buf, sizeof(s_buf));
     HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_10);
-    osDelay(500);
+    usart3Printf(s_buf, sizeof(s_buf));
+    osDelay(5000);
   }
   /* USER CODE END StartDefaultTask */
 }
