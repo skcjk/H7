@@ -28,6 +28,7 @@
 #include "usart.h"
 #include "gpio.h"
 #include "cmd.h"
+#include "MS5837Task.h"
 #include "MS5837.h"
 #include <string.h>
 #include <stdlib.h>
@@ -56,7 +57,7 @@
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .stack_size = 256 * 4,
+  .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for cmdTask */
@@ -65,6 +66,13 @@ const osThreadAttr_t cmdTask_attributes = {
   .name = "cmdTask",
   .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityHigh,
+};
+/* Definitions for ms5837Task */
+osThreadId_t ms5837TaskHandle;
+const osThreadAttr_t ms5837Task_attributes = {
+  .name = "ms5837Task",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for usart3Mutex */
 osMutexId_t usart3MutexHandle;
@@ -76,6 +84,11 @@ osSemaphoreId_t cmdRxBinarySemHandle;
 const osSemaphoreAttr_t cmdRxBinarySem_attributes = {
   .name = "cmdRxBinarySem"
 };
+/* Definitions for ms5837BinarySem */
+osSemaphoreId_t ms5837BinarySemHandle;
+const osSemaphoreAttr_t ms5837BinarySem_attributes = {
+  .name = "ms5837BinarySem"
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -84,6 +97,7 @@ const osSemaphoreAttr_t cmdRxBinarySem_attributes = {
 
 void StartDefaultTask(void *argument);
 extern void CmdTask(void *argument);
+extern void Ms5837Task(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -108,6 +122,9 @@ void MX_FREERTOS_Init(void) {
   /* creation of cmdRxBinarySem */
   cmdRxBinarySemHandle = osSemaphoreNew(1, 0, &cmdRxBinarySem_attributes);
 
+  /* creation of ms5837BinarySem */
+  ms5837BinarySemHandle = osSemaphoreNew(1, 0, &ms5837BinarySem_attributes);
+
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
@@ -126,6 +143,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of cmdTask */
   cmdTaskHandle = osThreadNew(CmdTask, NULL, &cmdTask_attributes);
+
+  /* creation of ms5837Task */
+  ms5837TaskHandle = osThreadNew(Ms5837Task, NULL, &ms5837Task_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -147,18 +167,12 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
-  MS5837_init();
 
-  char dataStr[50];
   // unsigned char s_buf[]="hello world\r\n";
   /* Infinite loop */
   for(;;)
   {
     HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_10);
-    MS5837_data data = MS5837_Getdata();
-    // usart3Printf(s_buf, sizeof(s_buf));
-    sprintf(dataStr, "Temperature: %.2f, Pressure: %.2f, Depth: %.2f", data.temperture, data.pressure, data.depth);
-    usart3Printf(dataStr, strlen(dataStr));
     osDelay(500);
   }
   /* USER CODE END StartDefaultTask */

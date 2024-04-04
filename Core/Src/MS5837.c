@@ -112,7 +112,7 @@ uint32_t MS583703BA_getConversion(uint8_t command)
 #endif
 
 #if USE_FREE_RTOS
-    taskENTER_CRITICAL();
+    taskENTER_CRITICAL(); //进入临界区，关中断
 #endif
     IIC_Start();
     IIC_Send_Byte(0xEC); // 写地址
@@ -129,7 +129,7 @@ uint32_t MS583703BA_getConversion(uint8_t command)
     temp[2] = IIC_Read_Byte(0); // 带NACK的读数据 bit 0-7
     IIC_Stop();
 #if USE_FREE_RTOS
-    taskEXIT_CRITICAL();
+    taskEXIT_CRITICAL(); ////推出临界区，开中断
 #endif
 
     conversion = ((uint32_t)temp[0] << 16) | ((uint32_t)temp[1] << 8) | temp[2];

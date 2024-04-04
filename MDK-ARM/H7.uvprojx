@@ -419,6 +419,11 @@
               <FilePath>..\Core\Src\MS5837.c</FilePath>
             </File>
             <File>
+              <FileName>MS5837Task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\MS5837Task.c</FilePath>
+            </File>
+            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/main.c</FilePath>

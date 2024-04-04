@@ -18,3 +18,4 @@ void CmdTask(void *argument);
 void usart3Printf(char *format, uint16_t len);
 
 void sum(cJSON *root);
+void getMs5837Data(cJSON *root);
