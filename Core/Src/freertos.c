@@ -28,6 +28,9 @@
 #include "usart.h"
 #include "gpio.h"
 #include "cmd.h"
+#include "MS5837.h"
+#include <string.h>
+#include <stdlib.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,7 +56,7 @@
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .stack_size = 128 * 4,
+  .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for cmdTask */
@@ -144,14 +147,19 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
+  MS5837_init();
 
+  char dataStr[50];
   // unsigned char s_buf[]="hello world\r\n";
   /* Infinite loop */
   for(;;)
   {
     HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_10);
+    MS5837_data data = MS5837_Getdata();
     // usart3Printf(s_buf, sizeof(s_buf));
-    osDelay(5000);
+    sprintf(dataStr, "Temperature: %.2f, Pressure: %.2f, Depth: %.2f", data.temperture, data.pressure, data.depth);
+    usart3Printf(dataStr, strlen(dataStr));
+    osDelay(500);
   }
   /* USER CODE END StartDefaultTask */
 }
