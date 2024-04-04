@@ -87,7 +87,6 @@ void usart3Printf(char *tx_buf, uint16_t len)
         {
             osDelay(5);
         }
-
         osMutexRelease(usart3MutexHandle); // 释放usart3互斥锁
     }
 }

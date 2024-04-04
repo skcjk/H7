@@ -64,14 +64,14 @@ const osThreadAttr_t defaultTask_attributes = {
 osThreadId_t cmdTaskHandle;
 const osThreadAttr_t cmdTask_attributes = {
   .name = "cmdTask",
-  .stack_size = 256 * 4,
+  .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityHigh,
 };
 /* Definitions for ms5837Task */
 osThreadId_t ms5837TaskHandle;
 const osThreadAttr_t ms5837Task_attributes = {
   .name = "ms5837Task",
-  .stack_size = 256 * 4,
+  .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for usart3Mutex */
@@ -172,7 +172,7 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_10);
+    // HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_10);
     osDelay(500);
   }
   /* USER CODE END StartDefaultTask */

@@ -31,8 +31,11 @@ void Ms5837Task(void *argument)
             char *return_str = cJSON_Print(root);
 
             usart3Printf(return_str, strlen(return_str));
+            // HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_10);
 
             free(return_str); // 释放内存
         }
+
+        osDelay(50);
     }
 }
