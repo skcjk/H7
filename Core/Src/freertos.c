@@ -60,7 +60,7 @@ const osThreadAttr_t defaultTask_attributes = {
 osThreadId_t cmdTaskHandle;
 const osThreadAttr_t cmdTask_attributes = {
   .name = "cmdTask",
-  .stack_size = 128 * 4,
+  .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityHigh,
 };
 /* Definitions for usart3Mutex */
@@ -145,12 +145,12 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
 
-  unsigned char s_buf[]="hello world\r\n";
+  // unsigned char s_buf[]="hello world\r\n";
   /* Infinite loop */
   for(;;)
   {
     HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_10);
-    usart3Printf(s_buf, sizeof(s_buf));
+    // usart3Printf(s_buf, sizeof(s_buf));
     osDelay(5000);
   }
   /* USER CODE END StartDefaultTask */
