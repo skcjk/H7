@@ -4,7 +4,8 @@
 #include "cJson.h"
 #include "cJSON_Utils.h"
 
-#define RX_BUF_LEN 128
+#define RX_BUF_LEN 400
+#define TX_BUF_LEN 400
 
 typedef void (*callback)(cJSON *root);
 
