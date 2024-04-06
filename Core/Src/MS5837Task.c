@@ -13,16 +13,13 @@ void Ms5837Task(void *argument)
     char return_str[100];
 
     MS5837_init();
-    while(1)
+    while (1)
     {
-        if (osSemaphoreAcquire(ms5837BinarySemHandle, osWaitForever) == osOK){
-            data = MS5837_Getdata();
+        osSemaphoreAcquire(ms5837BinarySemHandle, osWaitForever);
+        data = MS5837_Getdata();
 
-            sprintf(return_str, "{\n\t\"return\": \"ms5837\",\n\t\"temperature\": %.2f,\n\t\"pressure\": %.2f,\n\t\"depth\": %.2f\n}", data.temperture, data.pressure, data.depth);
+        sprintf(return_str, "{\n\t\"return\":\n\t\"ms5837\",\n\t\"temperature\":\n\t%.2f,\n\t\"pressure\":\n\t%.2f,\n\t\"depth\":\n\t%.2f}", data.temperture, data.pressure, data.depth);
 
-            usart3Printf(return_str, strlen(return_str));
-        }
-
-        osDelay(50);
+        usart3Printf(return_str, strlen(return_str));
     }
 }

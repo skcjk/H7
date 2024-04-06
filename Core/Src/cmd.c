@@ -72,7 +72,7 @@ void CmdTask(void *argument)
 
         cJSON_Delete(root); // 释放内存
 
-        memset(rx_buf, 0, data_length);
+        // memset(rx_buf, 0, data_length);
         HAL_UARTEx_ReceiveToIdle_DMA(&huart3, rx_buf, RX_BUF_LEN); // rx空闲中断打开
         __HAL_DMA_DISABLE_IT(&hdma_usart3_rx, DMA_IT_HT);
     }
