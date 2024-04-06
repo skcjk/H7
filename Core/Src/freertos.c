@@ -32,6 +32,7 @@
 #include "MS5837.h"
 #include <string.h>
 #include <stdlib.h>
+#include "usart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -174,6 +175,10 @@ void StartDefaultTask(void *argument)
   {
     HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_10);
     osDelay(60);
+    // if(HAL_LOCKED == huart3.Lock)
+    // { 
+    //   __HAL_UNLOCK(&huart3);      // 暴力解锁
+    // }
   }
   /* USER CODE END StartDefaultTask */
 }

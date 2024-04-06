@@ -8,6 +8,7 @@
 extern osSemaphoreId_t cmdRxBinarySemHandle;
 extern osSemaphoreId_t ms5837BinarySemHandle;
 extern osMutexId_t usart3MutexHandle;
+extern uint8_t ms5837ScanMode;
 
 unsigned char rx_buf[RX_BUF_LEN];
 unsigned char tx_buf[TX_BUF_LEN];
@@ -37,8 +38,11 @@ void CmdTask(void *argument)
         data_length = RX_BUF_LEN - __HAL_DMA_GET_COUNTER(&hdma_usart3_rx);
 
         cJSON *root = cJSON_ParseWithLength((char *)rx_buf, (size_t)data_length); // 解析接收信息
-        
+
         HAL_UARTEx_ReceiveToIdle_DMA(&huart3, rx_buf, RX_BUF_LEN); // rx空闲中断打开
+        // huart3.RxState = HAL_UART_STATE_READY;
+        // __HAL_UNLOCK(&huart3);
+
 
         if (root == NULL)
         { // 解析失败
@@ -126,5 +130,27 @@ void sum(cJSON *root)
 
 void getMs5837Data(cJSON *root)
 {
-    osSemaphoreRelease(ms5837BinarySemHandle);
+    cJSON *modeItem = cJSON_GetObjectItem(root, "mode");
+    if ((modeItem != NULL && cJSON_IsString(modeItem)))
+    {
+        if (!strcmp(cJSON_GetStringValue(modeItem), "scanoff"))
+        {
+            ms5837ScanMode = 0;
+        }
+        else if (!strcmp(cJSON_GetStringValue(modeItem), "scanon"))
+        {
+            ms5837ScanMode = 1;
+            osSemaphoreRelease(ms5837BinarySemHandle);
+        }
+        else if (!strcmp(cJSON_GetStringValue(modeItem), "once"))
+            osSemaphoreRelease(ms5837BinarySemHandle);
+        else
+        {
+            cJSON_ReplaceItemInObject(error_root, "error_type", cJSON_CreateString("no such mode"));
+            char *error_str = cJSON_Print(error_root);
+
+            usart3Printf(error_str, strlen(error_str));
+            free(error_str); // 释放内存
+        }
+    }
 }
