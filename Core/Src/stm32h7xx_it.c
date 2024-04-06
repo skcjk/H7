@@ -224,7 +224,6 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
 	if(huart==&huart3)
 	{
-    HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_12);
     osSemaphoreRelease(cmdRxBinarySemHandle);
 	}
 }
