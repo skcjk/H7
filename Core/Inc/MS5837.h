@@ -4,11 +4,11 @@
 #define USE_FREE_RTOS 1
 #define DENSITY 1029
 
-#if USE_FREE_RTOS
+
 #include "FreeRTOS.h"
 #include "task.h" //os 使用
 #include "cmsis_os.h"
-#endif
+
 
 typedef struct 
 {

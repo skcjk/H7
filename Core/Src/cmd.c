@@ -3,23 +3,26 @@
 #include "stm32h7xx_hal_dma.h"
 #include <string.h>
 #include <stdlib.h>
+#include "tim.h"
 
 extern osSemaphoreId_t cmdRxBinarySemHandle;
 extern osSemaphoreId_t ms5837BinarySemHandle;
 extern osMutexId_t usart3MutexHandle;
 
-callback_t callbacks[] = {
-    {"sum", sum},
-    {"ms5837", getMs5837Data},
-};
-
 unsigned char rx_buf[RX_BUF_LEN];
+unsigned char parse_buf[RX_BUF_LEN];
 unsigned char tx_buf[TX_BUF_LEN];
 
 cJSON *error_root;
 
 void CmdTask(void *argument)
 {
+
+    callback_t callbacks[] = {
+        {"sum", sum},
+        {"ms5837", getMs5837Data},
+    };
+    
     HAL_UARTEx_ReceiveToIdle_DMA(&huart3, rx_buf, RX_BUF_LEN);
     __HAL_DMA_DISABLE_IT(&hdma_usart3_rx, DMA_IT_HT);
     HAL_UART_Receive_DMA(&huart3, rx_buf, RX_BUF_LEN);
@@ -33,8 +36,12 @@ void CmdTask(void *argument)
         osSemaphoreAcquire(cmdRxBinarySemHandle, osWaitForever); // 当有rx中断时
 
         data_length = RX_BUF_LEN - __HAL_DMA_GET_COUNTER(&hdma_usart3_rx);
+        memcpy(parse_buf, rx_buf, data_length);
 
-        cJSON *root = cJSON_ParseWithLength((char *)rx_buf, (size_t)data_length); // 解析接收信息
+        HAL_UARTEx_ReceiveToIdle_DMA(&huart3, rx_buf, RX_BUF_LEN); // rx空闲中断打开
+        __HAL_DMA_DISABLE_IT(&hdma_usart3_rx, DMA_IT_HT);
+
+        cJSON *root = cJSON_ParseWithLength((char *)parse_buf, (size_t)data_length); // 解析接收信息
 
         if (root == NULL)
         { // 解析失败
@@ -71,10 +78,6 @@ void CmdTask(void *argument)
         }
 
         cJSON_Delete(root); // 释放内存
-
-        // memset(rx_buf, 0, data_length);
-        HAL_UARTEx_ReceiveToIdle_DMA(&huart3, rx_buf, RX_BUF_LEN); // rx空闲中断打开
-        __HAL_DMA_DISABLE_IT(&hdma_usart3_rx, DMA_IT_HT);
     }
 }
 
