@@ -97,16 +97,16 @@ void usart3Printf(char *temp_buf, uint16_t len)
 void sum(cJSON *root)
 {
     double sum;
-    char result[20];
+
     cJSON *aItem = cJSON_GetObjectItem(root, "a");
     cJSON *bItem = cJSON_GetObjectItem(root, "b");
     if ((aItem != NULL && cJSON_IsNumber(aItem)) && (bItem != NULL && cJSON_IsNumber(bItem)))
     {
         sum = cJSON_GetNumberValue(aItem) + cJSON_GetNumberValue(bItem);
-        sprintf(result, "%f", sum);
 
         cJSON *return_root = cJSON_CreateObject();
-        cJSON_AddStringToObject(return_root, "return", result);
+        cJSON_AddStringToObject(return_root, "return", "sum");
+        cJSON_AddNumberToObject(return_root, "result", sum);
         char *return_str = cJSON_Print(return_root);
 
         usart3Printf(return_str, strlen(return_str));
