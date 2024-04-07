@@ -5,9 +5,21 @@
 #include "cJSON_Utils.h"
 
 #define RX_BUF_LEN 200
-#define TX_BUF_LEN 400
+#define TX_BUF_LEN 200
 
 typedef void (*callback)(cJSON *root);
+
+typedef struct
+{
+    unsigned char rx_buf[RX_BUF_LEN];
+    uint8_t data_length;
+} rxStruct;
+
+typedef struct
+{
+    unsigned char tx_buf[TX_BUF_LEN];
+    uint8_t data_length;
+} txStruct;
 
 typedef struct
 {
@@ -16,7 +28,7 @@ typedef struct
 } callback_t;
 
 void CmdTask(void *argument);
-void usart3Printf(char *format, uint16_t len);
+void TxTask(void *argument);
 
 void sum(cJSON *root);
 void getMs5837Data(cJSON *root);

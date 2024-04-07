@@ -72,18 +72,30 @@ const osThreadAttr_t cmdTask_attributes = {
 osThreadId_t ms5837TaskHandle;
 const osThreadAttr_t ms5837Task_attributes = {
   .name = "ms5837Task",
-  .stack_size = 128 * 4,
+  .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
-/* Definitions for usart3Mutex */
-osMutexId_t usart3MutexHandle;
-const osMutexAttr_t usart3Mutex_attributes = {
-  .name = "usart3Mutex"
+/* Definitions for txTask */
+osThreadId_t txTaskHandle;
+const osThreadAttr_t txTask_attributes = {
+  .name = "txTask",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityHigh,
 };
-/* Definitions for cmdRxBinarySem */
-osSemaphoreId_t cmdRxBinarySemHandle;
-const osSemaphoreAttr_t cmdRxBinarySem_attributes = {
-  .name = "cmdRxBinarySem"
+/* Definitions for rxQueue */
+osMessageQueueId_t rxQueueHandle;
+const osMessageQueueAttr_t rxQueue_attributes = {
+  .name = "rxQueue"
+};
+/* Definitions for txQueue */
+osMessageQueueId_t txQueueHandle;
+const osMessageQueueAttr_t txQueue_attributes = {
+  .name = "txQueue"
+};
+/* Definitions for usart8Mutex */
+osMutexId_t usart8MutexHandle;
+const osMutexAttr_t usart8Mutex_attributes = {
+  .name = "usart8Mutex"
 };
 /* Definitions for ms5837BinarySem */
 osSemaphoreId_t ms5837BinarySemHandle;
@@ -99,6 +111,7 @@ const osSemaphoreAttr_t ms5837BinarySem_attributes = {
 void StartDefaultTask(void *argument);
 extern void CmdTask(void *argument);
 extern void Ms5837Task(void *argument);
+extern void TxTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -112,17 +125,14 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE END Init */
   /* Create the mutex(es) */
-  /* creation of usart3Mutex */
-  usart3MutexHandle = osMutexNew(&usart3Mutex_attributes);
+  /* creation of usart8Mutex */
+  usart8MutexHandle = osMutexNew(&usart8Mutex_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
 
   /* Create the semaphores(s) */
-  /* creation of cmdRxBinarySem */
-  cmdRxBinarySemHandle = osSemaphoreNew(1, 0, &cmdRxBinarySem_attributes);
-
   /* creation of ms5837BinarySem */
   ms5837BinarySemHandle = osSemaphoreNew(1, 0, &ms5837BinarySem_attributes);
 
@@ -133,6 +143,13 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
+
+  /* Create the queue(s) */
+  /* creation of rxQueue */
+  rxQueueHandle = osMessageQueueNew (3, sizeof(rxStruct), &rxQueue_attributes);
+
+  /* creation of txQueue */
+  txQueueHandle = osMessageQueueNew (3, sizeof(txStruct), &txQueue_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -147,6 +164,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of ms5837Task */
   ms5837TaskHandle = osThreadNew(Ms5837Task, NULL, &ms5837Task_attributes);
+
+  /* creation of txTask */
+  txTaskHandle = osThreadNew(TxTask, NULL, &txTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
